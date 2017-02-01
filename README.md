@@ -1,4 +1,4 @@
-# ProntoHex
+# ProntoHex [![Build Status](https://travis-ci.org/tuzzmaniandevil/ProntoHex.svg)](https://travis-ci.org/tuzzmaniandevil/ProntoHex)
 
 Inspired by https://github.com/probonopd/ProntoHex, This is a almost completely re-write of the library to be faster, more effeciant and be able to handle any length of pronto hex.
 
