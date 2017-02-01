@@ -1,101 +1,88 @@
 /*
-  ProntoHex by Simon Peter
+  ProntoHex by Wesley Tuzza
 
   Based on information from
-  http://stackoverflow.com/questions/25771333/ir-hex-to-raw-ir-code-conversion
-  and https://www.remotecentral.com/features/irdisp2.htm
-
+  https://github.com/probonopd/ProntoHex
 */
 
 #include "Arduino.h"
 #include "ProntoHex.h"
 
-int frequency;
-int length;
-unsigned int convertedRaw[256];
-
-void ProntoHex::convert(String prontoDataStr)
-{
+/**
+   Convert a Pronto Hex String to raw timings, Frequency and length
+*/
+void ProntoHex::convert(String prontoDataStr) {
+  // Define reused variables
   int i = 0;
-  uint16_t array[128];
   uint16_t j = 0;
+  unsigned int hexVal;
+  char hexchararray[5];
 
-  while (  i < strlen(prontoDataStr.c_str()) ) // .c_str() makes a char[] out of an Arduino String
-  {
-    char hexchararray[5]; // Length is 5 because 5th is null termination, one reason why I dislike C
-    strncpy(hexchararray, prontoDataStr.c_str() + i, 4);
-    hexchararray[4] = '\0'; // Null terminate
-
-    // string, String, char* and char[] - four ways to do essentially the same. Very confusing, one reason why I prefer Python over C
-    // Need to convert "char array" to "char *"
-    // "A char[] can be cast to a const char *, but not vice versa." http://stackoverflow.com/questions/14785442/typcasting-a-character-array-to-a-const-char
-    char *charstar = &hexchararray[0];  // get the address of (=pointer to) the start of the array
-    unsigned int hexNumber = this->hexToInt(charstar);
-    array[j] = hexNumber;
-    j++;
-    i = i + 5; // TODO: Better would be to find the position of the next blank and use that
+  // Make sure pronto hex is formatted correctly by removing spaces and making sure the hex is equal 2 byte groups
+  prontoDataStr.replace(" ", "");
+  while ((prontoDataStr.length() & 4) != 0) {
+    prontoDataStr = prontoDataStr + "0";
   }
 
-  float carrierFrequency = 1000000 / (array[1] * 0.241246);
+  // Convert string to char*, it's easier to deal with
+  const char* prontoDataChar = prontoDataStr.c_str();
 
-  int codeLength = array[2];
-  if (codeLength == 0) codeLength = array[3]; // If Sequence #1 is missing (array[2]=0000), then Burst Sequence #2 starts at array[4]
+  // Calculate buffer size and init buffer
+  int bufferSize = strlen(prontoDataChar) / 4;
+  unsigned int buffer[bufferSize];
 
-  int repeatCodeLength = array[3];
-  length = codeLength*2;
+  // Get every 2 bytes e.g. 0000 or FFFF
+  for (i = 0; i < strlen(prontoDataChar); i += 4) {
+    strncpy(hexchararray, prontoDataChar + i, 4);
+    hexchararray[4] = '\0'; // Null terminate
 
-  // TODO: Handle repeat sequences
-  // sequence1EndPoint = 2 * codeLength
-  // sequence2EndPoint = sequence1EndPoint + 2 * repeatCodeLength
-  // firstSequence = fullSequenceConverted from index 0 to sequence1EndPoint
-  // secondSequence = fullSequenceConverted from sequence1EndPoint to sequence2EndPoint
+    // Convert HEX to int
+    hexVal = strtol(hexchararray, NULL, 16);
+
+    // Add hex to buffer array
+    buffer[j] = hexVal;
+    j++;
+  }
+
+  // Calculate Frequancy
+  float carrierFrequency = 1000000 / (buffer[1] * 0.241246);
+
+  int codeLength = buffer[2];
+  if (codeLength == 0) codeLength = buffer[3]; // If Sequence #1 is missing (array[2]=0000), then Burst Sequence #2 starts at array[4]
+
+  length = codeLength * 2;
 
   int index = 0;
-  
-  for (int i = 4; i < j; i++ )
-  {
-    int convertedToMicrosec = (1000000 * (array[i] / carrierFrequency) + 0.5);
+  unsigned int convertedToMicrosec;
+  convertedRaw = new unsigned int[length]; // Need to make sure convertedRaw is the same length as "length"
+
+  for (i = 4; i < (length + 4); i++ ) {
+    convertedToMicrosec = (1000000 * (buffer[i] / carrierFrequency) + 0.5);
+
+    if (convertedToMicrosec > 20000) { // ESP8266 has a recommended limit of 20 milliseconds delay. IR Shouldn't be more than that anyway
+      convertedToMicrosec = 0;
+    }
     convertedRaw[index++] = convertedToMicrosec;
   }
 
   frequency = (int)(carrierFrequency / 1000);
-
 }
 
-// http://stackoverflow.com/questions/4951714/c-code-to-convert-hex-to-int
-// Something like that should come with the Arduino libraries
-// strtol is too complicated and did not work for me
-unsigned int ProntoHex::hexToInt(const char *hex)
-{
-  unsigned int result = 0;
-  while (*hex)
-  {
-    if (*hex > 47 && *hex < 58)
-      result += (*hex - 48);
-    else if (*hex > 64 && *hex < 71)
-      result += (*hex - 55);
-    else if (*hex > 96 && *hex < 103)
-      result += (*hex - 87);
-    if (*++hex)
-      result <<= 4;
-  }
-  return result;
-}
-
-// Take an array of ints and return a string, containing + and - prefixes for displaying raw timings
-String ProntoHex::join(unsigned int strs[], int len) {
+/**
+   Take an array of ints and return a string, containing + and - prefixes for displaying raw timings
+*/
+String ProntoHex::join(unsigned int *strs, int len) {
   String result = "";
   String prefix = "";
+
   for (int i = 0; i < len; i++) {
-    if (i % 2 == 0) // Check if number is even or uneven
-    {
+    if (i % 2 == 0) { // Check if number is even or uneven
       prefix = "+";
-    }
-    else
-    {
+    } else {
       prefix = "-";
     }
     result += prefix + String(strs[i]) + " ";
   }
+
   return result.substring(0, result.length() - 1);
 }

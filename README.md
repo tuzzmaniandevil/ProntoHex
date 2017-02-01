@@ -1,2 +1,5 @@
-# ProntoHex [![Build Status](https://travis-ci.org/probonopd/ProntoHex.svg)](https://travis-ci.org/probonopd/ProntoHex)
-Arduino library to convert Pronto Hex infrared remote control codes `0000 ...` from sites like http://irdb.tk to raw timings that can be sent with usual IR sending libraries, such as https://github.com/cyborg5/IRLib, https://github.com/shirriff/Arduino-IRremote or https://github.com/NicoHood/IRLremote
+# ProntoHex
+
+Inspired by https://github.com/probonopd/ProntoHex, This is a almost completely re-write of the library to be faster, more effeciant and be able to handle any length of pronto hex.
+
+This Arduino library is used to convert Pronto Hex to raw timings, frequency and length. It can be used with a variaty of IR send libraries like [Arduino-IRremote](https://github.com/shirriff/Arduino-IRremote) and [IRremoteESP8266](https://github.com/sebastienwarin/IRremoteESP8266)

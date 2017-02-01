@@ -1,5 +1,5 @@
 /*
-  ProntoHex by Simon Peter
+  ProntoHex by Wesley Tuzza
 */
 
 #ifndef ProntoHex_h
@@ -10,12 +10,11 @@
 class ProntoHex
 {
   public:
-    void convert(String hexcode);
     int frequency;
     int length;
-    unsigned int hexToInt(const char *hex);
-    String join(unsigned int strs[], int len);
-    unsigned int convertedRaw[256];
+    unsigned int *convertedRaw;
+    void convert(String hexcode);
+    String join(unsigned int *strs, int len);
 };
 
 #endif
