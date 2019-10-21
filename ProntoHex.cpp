@@ -15,7 +15,7 @@ void ProntoHex::convert(String prontoDataStr) {
   // Define reused variables
   int i = 0;
   uint16_t j = 0;
-  unsigned int hexVal;
+  uint16_t hexVal;
   char hexchararray[5];
 
   // Make sure pronto hex is formatted correctly by removing spaces and making sure the hex is equal 2 byte groups
@@ -29,7 +29,7 @@ void ProntoHex::convert(String prontoDataStr) {
 
   // Calculate buffer size and init buffer
   int bufferSize = strlen(prontoDataChar) / 4;
-  unsigned int buffer[bufferSize];
+  uint16_t buffer[bufferSize];
 
   // Get every 2 bytes e.g. 0000 or FFFF
   for (i = 0; i < strlen(prontoDataChar); i += 4) {
@@ -54,7 +54,7 @@ void ProntoHex::convert(String prontoDataStr) {
 
   int index = 0;
   unsigned int convertedToMicrosec;
-  convertedRaw = new unsigned int[length]; // Need to make sure convertedRaw is the same length as "length"
+  convertedRaw = new uint16_t[length]; // Need to make sure convertedRaw is the same length as "length"
 
   for (i = 4; i < (length + 4); i++ ) {
     convertedToMicrosec = (1000000 * (buffer[i] / carrierFrequency) + 0.5);
@@ -65,13 +65,13 @@ void ProntoHex::convert(String prontoDataStr) {
     convertedRaw[index++] = convertedToMicrosec;
   }
 
-  frequency = (int)(carrierFrequency / 1000);
+  frequency = (uint16_t)(carrierFrequency / 1000);
 }
 
 /**
    Take an array of ints and return a string, containing + and - prefixes for displaying raw timings
 */
-String ProntoHex::join(unsigned int *strs, int len) {
+String ProntoHex::join(uint16_t *strs, uint16_t len) {
   String result = "";
   String prefix = "";
 

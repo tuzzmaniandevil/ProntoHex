@@ -10,11 +10,11 @@
 class ProntoHex
 {
   public:
-    int frequency;
-    int length;
-    unsigned int *convertedRaw;
+    uint16_t frequency;
+    uint16_t length;
+    uint16_t * convertedRaw;
     void convert(String hexcode);
-    String join(unsigned int *strs, int len);
+    String join(uint16_t *strs, uint16_t len);
 };
 
 #endif
